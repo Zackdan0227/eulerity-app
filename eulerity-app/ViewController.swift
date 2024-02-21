@@ -16,7 +16,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
     var images: [ImageModel] = []
     var filteredImages: [ImageModel] = []
     
-    var selectedImageCache: (image: UIImage, model: ImageModel)?
+    var selectedImageCache: (image: UIImage, imageView: UIImageView)?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -152,7 +152,8 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
         guard let imageView = sender.view as? UIImageView else { return }
         
         let index = imageView.tag
-        
+        let image = imageView.image
+        selectedImageCache = (image: image!, imageView: imageView)
         // Determine if a dropdown is already present for this image
         if let existingDropdown = scrollView.viewWithTag(9999) {
             // Determine if we are closing the current dropdown or opening a new one
@@ -174,7 +175,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
         let imageModel = filteredImages[index]
         createDropdownMenu(for: imageModel, below: imageView, atIndex: index)
     }
-
+    
     func loadImage(from url: URL, into imageView: UIImageView) {
         print("Loading image from URL: \(url)")
         
@@ -340,32 +341,29 @@ extension ViewController {
             self.scrollView.contentSize.height += adjustmentHeight
         }
     }
-
+    
     //save button tapped callback
     @objc func saveButtonTapped(_ sender: UIButton) {
-        // Assuming dropdownView is the direct parent of the button, adjust the view hierarchy navigation as needed
-        guard let dropdownView = sender.superview?.superview,
-              let imageView = scrollView.subviews.first(where: { $0.tag == dropdownView.tag }) as? UIImageView,
-              let image = imageView.image else {
-            print("Failed to identify the image for saving")
-            return
-        }
-        
-        let index = dropdownView.tag - 9999
-        // Check if the index is within the bounds of filteredImages
-        if index >= 0 && index < filteredImages.count {
-            let imageModel = filteredImages[index]
-            // Now you have a valid index and imageModel, proceed with your saving logic
-            saveImageLocally(image: image, completion: { success in
+        guard let selectedImageTuple = selectedImageCache else {
+               print("No image selected for saving")
+               return
+           }
+        let image = selectedImageTuple.image
+        let imageView = selectedImageTuple.imageView
+        let alert = UIAlertController(title: "Save Image", message: "Do you want to save this image?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
+            self?.saveImageLocally(image: image, completion: { (success) in
                 if success {
                     print("Image saved successfully")
                 } else {
                     print("Failed to save image")
                 }
             })
-        } else {
-            print("Index out of bounds")
-        }
+            self?.saveImageToServer(image: image, imageView: imageView)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        present(alert, animated: true, completion: nil)
     }
     
     
