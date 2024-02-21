@@ -18,6 +18,7 @@
 		D949C73E2B856F32004F5505 /* eulerity_appUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D949C73D2B856F32004F5505 /* eulerity_appUITestsLaunchTests.swift */; };
 		D949C74B2B857041004F5505 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D949C74A2B857041004F5505 /* NetworkService.swift */; };
 		D949C74D2B857070004F5505 /* ImageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D949C74C2B857070004F5505 /* ImageModel.swift */; };
+		D949C74F2B85AC36004F5505 /* ImageDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D949C74E2B85AC36004F5505 /* ImageDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +54,7 @@
 		D949C73D2B856F32004F5505 /* eulerity_appUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eulerity_appUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		D949C74A2B857041004F5505 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		D949C74C2B857070004F5505 /* ImageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageModel.swift; sourceTree = "<group>"; };
+		D949C74E2B85AC36004F5505 /* ImageDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +108,7 @@
 				D949C71A2B856F31004F5505 /* AppDelegate.swift */,
 				D949C71C2B856F31004F5505 /* SceneDelegate.swift */,
 				D949C71E2B856F31004F5505 /* ViewController.swift */,
+				D949C74E2B85AC36004F5505 /* ImageDetailView.swift */,
 				D949C74A2B857041004F5505 /* NetworkService.swift */,
 				D949C74C2B857070004F5505 /* ImageModel.swift */,
 				D949C7202B856F31004F5505 /* Main.storyboard */,
@@ -269,6 +272,7 @@
 				D949C71B2B856F31004F5505 /* AppDelegate.swift in Sources */,
 				D949C74B2B857041004F5505 /* NetworkService.swift in Sources */,
 				D949C71D2B856F31004F5505 /* SceneDelegate.swift in Sources */,
+				D949C74F2B85AC36004F5505 /* ImageDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

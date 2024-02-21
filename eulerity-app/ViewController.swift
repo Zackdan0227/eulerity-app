@@ -12,21 +12,17 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
     var scrollView: UIScrollView!
     var searchBar: UISearchBar!
     var imageViews: [UIImageView] = []
-    var overlayImageView: UIImageView!
     // Data model
     var images: [ImageModel] = []
     var filteredImages: [ImageModel] = []
+    
+    var selectedImageCache: (image: UIImage, model: ImageModel)?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         fetchImages()
         
-        // Initialize the overlayImageView
-        overlayImageView = UIImageView(frame: view.bounds) // Adjust frame as necessary
-        overlayImageView.contentMode = .scaleAspectFit
-        view.addSubview(overlayImageView)
-        overlayImageView.isHidden = true // Hide it initially
     }
     
     func setupUI() {
@@ -113,6 +109,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
             imageView.contentMode = .scaleAspectFill
             imageView.clipsToBounds = true
             imageView.tag = index
+            imageView.layer.cornerRadius = 10
             imageView.isUserInteractionEnabled = true
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(imageTapped(_:)))
             imageView.addGestureRecognizer(tapGesture)
@@ -130,39 +127,54 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
         scrollView.contentSize = CGSize(width: view.frame.width, height: yOffset)
     }
     
-//    @objc func imageTapped(_ sender: UITapGestureRecognizer) {
-//        guard let imageView = sender.view as? UIImageView, let image = imageView.image else {
-//            print("ImageView does not contain an image")
-//            return
-//        }
-//        
-//        let alert = UIAlertController(title: "Save Image", message: "Do you want to save this image?", preferredStyle: .alert)
-//        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
-//            self?.saveImageLocally(image: image, completion: { (success) in
-//                if success {
-//                    print("Image saved successfully")
-//                } else {
-//                    print("Failed to save image")
-//                }
-//            })
-//            self?.saveImageToServer(image: image, imageView: imageView)
-//        }))
-//        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-//        
-//        present(alert, animated: true, completion: nil)
-//    }
+    //    @objc func imageTapped(_ sender: UITapGestureRecognizer) {
+    //        guard let imageView = sender.view as? UIImageView, let image = imageView.image else {
+    //            print("ImageView does not contain an image")
+    //            return
+    //        }
+    //
+    //        let alert = UIAlertController(title: "Save Image", message: "Do you want to save this image?", preferredStyle: .alert)
+    //        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
+    //            self?.saveImageLocally(image: image, completion: { (success) in
+    //                if success {
+    //                    print("Image saved successfully")
+    //                } else {
+    //                    print("Failed to save image")
+    //                }
+    //            })
+    //            self?.saveImageToServer(image: image, imageView: imageView)
+    //        }))
+    //        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+    //
+    //        present(alert, animated: true, completion: nil)
+    //    }
     @objc func imageTapped(_ sender: UITapGestureRecognizer) {
-        guard let imageView = sender.view as? UIImageView,
-              let image = imageView.image,
-              let imageIndex = imageView.tag < filteredImages.count ? imageView.tag : nil else {
-            print("ImageView does not contain an image or index out of bounds")
-            return
+        guard let imageView = sender.view as? UIImageView else { return }
+        
+        let index = imageView.tag
+        
+        // Determine if a dropdown is already present for this image
+        if let existingDropdown = scrollView.viewWithTag(9999) {
+            // Determine if we are closing the current dropdown or opening a new one
+            let isClosingCurrentDropdown = existingDropdown.frame.origin.y == imageView.frame.maxY
+            
+            // Remove existing dropdown
+            existingDropdown.removeFromSuperview()
+            
+            // Adjust layout to return subsequent images to their original position if we're closing the current dropdown
+            if isClosingCurrentDropdown {
+                adjustLayoutForDropdown(showing: false, atIndex: index, dropdownHeight: existingDropdown.frame.height)
+            }
+            
+            // If closing the current dropdown, stop further processing
+            if isClosingCurrentDropdown { return }
         }
         
-        let imageModel = filteredImages[imageIndex]
-        showDetailOverlay(for: imageModel, withImage: image)
+        // If reaching this point, either no dropdown was present or we're opening a new one after closing the existing one
+        let imageModel = filteredImages[index]
+        createDropdownMenu(for: imageModel, below: imageView, atIndex: index)
     }
-    
+
     func loadImage(from url: URL, into imageView: UIImageView) {
         print("Loading image from URL: \(url)")
         
@@ -278,90 +290,84 @@ extension ViewController {
             }
         }
     }
-
+    
     
 }
 extension ViewController {
-    //show detail overlay
-    func showDetailOverlay(for imageModel: ImageModel, withImage image: UIImage) {
-        let detailView = UIView(frame: view.bounds)
-        detailView.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+    func createDropdownMenu(for imageModel: ImageModel, below imageView: UIImageView, atIndex index: Int) {
+        // Calculating dropdownHeight dynamically based on content could be more complex
+        let dropdownHeight: CGFloat = 120 // Example fixed height, adjust as needed
+        let dropdownView = UIView(frame: CGRect(x: imageView.frame.origin.x, y: imageView.frame.maxY, width: imageView.frame.width, height: dropdownHeight))
+        dropdownView.backgroundColor = .white
+        dropdownView.layer.cornerRadius = 5
+        dropdownView.clipsToBounds = true
+        dropdownView.tag = 9999 // Unique tag
         
-        let blurEffect = UIBlurEffect(style: .dark)
-        let blurView = UIVisualEffectView(effect: blurEffect)
-        blurView.frame = detailView.bounds
-        detailView.addSubview(blurView)
-        
-        // Image View
-        let imageView = UIImageView(image: image)
-        imageView.contentMode = .scaleAspectFit
-        imageView.frame = CGRect(x: 20, y: 100, width: detailView.frame.width - 40, height: 200)
-        blurView.contentView.addSubview(imageView)
-        
-        // Title Label
-        let titleLabel = UILabel(frame: CGRect(x: 20, y: 310, width: detailView.frame.width - 40, height: 20))
-        titleLabel.textColor = .white
-        titleLabel.textAlignment = .center
+        let titleLabel = UILabel(frame: CGRect(x: 10, y: 5, width: dropdownView.frame.width, height: 20))
         titleLabel.text = "Title: \(imageModel.title)"
-        blurView.contentView.addSubview(titleLabel)
+        dropdownView.addSubview(titleLabel)
         
-        // Description Label
-        let descriptionLabel = UILabel(frame: CGRect(x: 20, y: 340, width: detailView.frame.width - 40, height: 20))
-        descriptionLabel.textColor = .white
-        descriptionLabel.textAlignment = .center
+        let descriptionLabel = UILabel(frame: CGRect(x: 10, y: 30, width: dropdownView.frame.width, height: 50))
         descriptionLabel.text = "Description: \(imageModel.description)"
-        blurView.contentView.addSubview(descriptionLabel)
+        descriptionLabel.numberOfLines = 0
+        dropdownView.addSubview(descriptionLabel)
         
-        // Creation Date Label
-        let dateLabel = UILabel(frame: CGRect(x: 20, y: 370, width: detailView.frame.width - 40, height: 20))
-        dateLabel.textColor = .white
-        dateLabel.textAlignment = .center
-        dateLabel.text = "Created: \(imageModel.created)"
-        blurView.contentView.addSubview(dateLabel)
-        
-        // Save Button
-        let saveButton = UIButton(type: .system)
-        saveButton.frame = CGRect(x: 100, y: detailView.frame.height - 100, width: detailView.frame.width - 200, height: 44)
+        let saveButton = UIButton(frame: CGRect(x: 10, y: 75, width: dropdownView.frame.width - 20, height: 40))
         saveButton.setTitle("Save", for: .normal)
-        saveButton.addTarget(self, action: #selector(saveButtonTapped(_:)), for: .touchUpInside)
         saveButton.backgroundColor = .systemBlue
-        saveButton.setTitleColor(.white, for: .normal)
-        saveButton.layer.cornerRadius = 22
-        blurView.contentView.addSubview(saveButton)
+        saveButton.addTarget(self, action: #selector(saveButtonTapped(_:)), for: .touchUpInside)
+        saveButton.layer.cornerRadius = 5
+        dropdownView.addSubview(saveButton)
         
-        // Close Button
-        let closeButton = UIButton(type: .system)
-        closeButton.frame = CGRect(x: detailView.frame.width - 60, y: 30, width: 30, height: 30)
-        closeButton.setTitle("X", for: .normal)
-        closeButton.addTarget(self, action: #selector(closeButtonTapped(_:)), for: .touchUpInside)
-        closeButton.backgroundColor = .clear
-        closeButton.setTitleColor(.white, for: .normal)
-        blurView.contentView.addSubview(closeButton)
-        
-        // Tag the detailView for later removal
-        detailView.tag = 999
-        view.addSubview(detailView)
+        scrollView.addSubview(dropdownView)
+        adjustLayoutForDropdown(showing: true, atIndex: index, dropdownHeight: dropdownHeight)
     }
+    
+    func adjustLayoutForDropdown(showing: Bool, atIndex index: Int, dropdownHeight: CGFloat) {
+        UIView.animate(withDuration: 0.3) {
+            var adjustmentHeight = dropdownHeight
+            if !showing {
+                // If hiding the dropdown, adjust the height negatively
+                adjustmentHeight = -dropdownHeight
+            }
+            
+            for i in (index + 1)..<self.imageViews.count {
+                let imageView = self.imageViews[i]
+                imageView.frame.origin.y += adjustmentHeight
+            }
+            
+            // Adjust scrollView content size based on the showing/hiding of the dropdown
+            self.scrollView.contentSize.height += adjustmentHeight
+        }
+    }
+
     //save button tapped callback
     @objc func saveButtonTapped(_ sender: UIButton) {
-        guard let detailView = view.viewWithTag(999),
-              let imageView = detailView.subviews.compactMap({ $0 as? UIImageView }).first,
+        // Assuming dropdownView is the direct parent of the button, adjust the view hierarchy navigation as needed
+        guard let dropdownView = sender.superview?.superview,
+              let imageView = scrollView.subviews.first(where: { $0.tag == dropdownView.tag }) as? UIImageView,
               let image = imageView.image else {
+            print("Failed to identify the image for saving")
             return
         }
         
-        saveImageLocally(image: image, completion: { (success) in
-            if success {
-                print("Image saved successfully")
-            } else {
-                print("Failed to save image")
-            }
-        })
-        detailView.removeFromSuperview()
+        let index = dropdownView.tag - 9999
+        // Check if the index is within the bounds of filteredImages
+        if index >= 0 && index < filteredImages.count {
+            let imageModel = filteredImages[index]
+            // Now you have a valid index and imageModel, proceed with your saving logic
+            saveImageLocally(image: image, completion: { success in
+                if success {
+                    print("Image saved successfully")
+                } else {
+                    print("Failed to save image")
+                }
+            })
+        } else {
+            print("Index out of bounds")
+        }
     }
-
-    @objc func closeButtonTapped(_ sender: UIButton) {
-        view.viewWithTag(999)?.removeFromSuperview()
-    }
-
+    
+    
+    
 }
