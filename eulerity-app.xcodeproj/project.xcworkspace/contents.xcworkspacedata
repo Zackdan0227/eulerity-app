@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:">
+      location = "self:/Users/yo/Desktop/Internship/Eularity/eularity-app/eulerity-app.xcodeproj">
    </FileRef>
 </Workspace>
