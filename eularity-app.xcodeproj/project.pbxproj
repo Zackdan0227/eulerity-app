@@ -16,6 +16,8 @@
 		D949C7322B856F32004F5505 /* eularity_appTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D949C7312B856F32004F5505 /* eularity_appTests.swift */; };
 		D949C73C2B856F32004F5505 /* eularity_appUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D949C73B2B856F32004F5505 /* eularity_appUITests.swift */; };
 		D949C73E2B856F32004F5505 /* eularity_appUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D949C73D2B856F32004F5505 /* eularity_appUITestsLaunchTests.swift */; };
+		D949C74B2B857041004F5505 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D949C74A2B857041004F5505 /* NetworkService.swift */; };
+		D949C74D2B857070004F5505 /* ImageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D949C74C2B857070004F5505 /* ImageModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +51,8 @@
 		D949C7372B856F32004F5505 /* eularity-appUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "eularity-appUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D949C73B2B856F32004F5505 /* eularity_appUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eularity_appUITests.swift; sourceTree = "<group>"; };
 		D949C73D2B856F32004F5505 /* eularity_appUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eularity_appUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		D949C74A2B857041004F5505 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
+		D949C74C2B857070004F5505 /* ImageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +106,8 @@
 				D949C71A2B856F31004F5505 /* AppDelegate.swift */,
 				D949C71C2B856F31004F5505 /* SceneDelegate.swift */,
 				D949C71E2B856F31004F5505 /* ViewController.swift */,
+				D949C74A2B857041004F5505 /* NetworkService.swift */,
+				D949C74C2B857070004F5505 /* ImageModel.swift */,
 				D949C7202B856F31004F5505 /* Main.storyboard */,
 				D949C7232B856F32004F5505 /* Assets.xcassets */,
 				D949C7252B856F32004F5505 /* LaunchScreen.storyboard */,
@@ -259,7 +265,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D949C71F2B856F31004F5505 /* ViewController.swift in Sources */,
+				D949C74D2B857070004F5505 /* ImageModel.swift in Sources */,
 				D949C71B2B856F31004F5505 /* AppDelegate.swift in Sources */,
+				D949C74B2B857041004F5505 /* NetworkService.swift in Sources */,
 				D949C71D2B856F31004F5505 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
