@@ -15,7 +15,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
     // Data model
     var images: [ImageModel] = []
     var filteredImages: [ImageModel] = []
-    
+    var dropdownIndex : Int?
     var selectedImageCache: (image: UIImage, imageView: UIImageView)?
     
     override func viewDidLoad() {
@@ -68,7 +68,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
         case missingComponent
     }
     
-    
+    //fetch images from /pets endpoint
     func fetchImages() {
         NetworkService().fetchImages { [weak self] result in
             switch result {
@@ -82,17 +82,15 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
-                    // Optionally, present a more detailed failure message based on the error type
+                    
                     print("Error fetching images: \(error)")
-                    // Here you may also update your UI to reflect the loading error
-                    // E.g., Display a label with an error message or show default/placeholder images
                 }
             }
         }
     }
     
     
-    
+    //display images in scroll view programmatically
     func displayImages() {
         let imageWidth: CGFloat = view.frame.width - 40
         let imageHeight: CGFloat = 200
@@ -126,7 +124,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
         
         scrollView.contentSize = CGSize(width: view.frame.width, height: yOffset)
     }
-    
+    //callback function for image tap, generate dropdown menu and close existing dropdown menu
     @objc func imageTapped(_ sender: UITapGestureRecognizer) {
         guard let imageView = sender.view as? UIImageView else { return }
         
@@ -148,49 +146,50 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
             }
             
             // If closing the current dropdown, stop further processing
-            if isClosingCurrentDropdown { return }
+            if isClosingCurrentDropdown { return } else {
+                if let index = dropdownIndex{
+                    adjustLayoutForDropdown(showing: false, atIndex: index, dropdownHeight: existingDropdown.frame.height)
+                }
+            }
         }
         
         // If reaching this point, either no dropdown was present or we're opening a new one after closing the existing one
         let imageModel = filteredImages[index]
         createDropdownMenu(for: imageModel, below: imageView, atIndex: index)
     }
-    
+    //load image from url
     func loadImage(from url: URL, into imageView: UIImageView) {
         print("Loading image from URL: \(url)")
         
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("Error loading image from URL \(url): \(error.localizedDescription)")
-                return
+        // Dispatch image loading to a background thread
+        DispatchQueue.global(qos: .userInitiated).async {
+            let task = URLSession.shared.dataTask(with: url) { data, response, error in
+                if let error = error {
+                    print("Error loading image from URL \(url): \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let data = data, let image = UIImage(data: data) else {
+                    print("Failed to load or decode image from URL \(url)")
+                    return
+                }
+                
+                // Dispatch UI updates back to the main thread
+                DispatchQueue.main.async {
+                    print("Image loaded successfully for URL \(url)")
+                    imageView.image = image
+                }
             }
             
-            guard let data = data else {
-                print("No data received for URL \(url)")
-                return
-            }
-            print("Received data size: \(data.count)")
-            
-            guard let image = UIImage(data: data) else {
-                print("Failed to create UIImage from data for URL \(url)")
-                return
-            }
-            
-            DispatchQueue.main.async {
-                print("Image loaded successfully for URL \(url)")
-                imageView.image = image
-            }
+            task.resume()
         }
-        
-        task.resume()
     }
-    
     
     
 }
 
 extension ViewController {
-    
+    //search bar delegate functions
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         // Check if the searchText is empty or not
         if searchText.isEmpty {
@@ -222,6 +221,7 @@ extension ViewController {
 }
 
 extension ViewController {
+    //save image to photo library
     func saveImageLocally(image: UIImage, completion: @escaping (Bool) -> Void) {
         UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
         completion(true)
@@ -231,28 +231,16 @@ extension ViewController {
         if let error = error {
             // Handle the error case
             print("Error saving image: \(error.localizedDescription)")
-            // If using a progress HUD, stop it here with a failure message
+            
         } else {
             print("Image saved successfully")
-            // If using a progress HUD, stop it here with a success message
+            
         }
     }
+    //save image to server
     func saveImageToServer(image: UIImage, imageView: UIImageView) {
-        // Assuming networkService is an instance of NetworkService you've created earlier.
         let networkService = NetworkService()
         let originalImageURL = filteredImages[imageView.tag].imageUrl
-        //save image file locally to repository under directory called "images"
-        let fileManager = FileManager.default
-        let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let fileURL = documentsURL.appendingPathComponent("images/\(UUID().uuidString).png")
-        if let data = image.pngData() {
-            do {
-                try data.write(to: fileURL)
-                print("Image saved locally: \(fileURL)")
-            } catch {
-                print("Failed to save image locally: \(error)")
-            }
-        }
         networkService.getUploadUrl { [weak self] result in
             switch result {
             case .success(let uploadUrl):
@@ -275,14 +263,15 @@ extension ViewController {
     
 }
 extension ViewController {
+    //create dropdown menu
     func createDropdownMenu(for imageModel: ImageModel, below imageView: UIImageView, atIndex index: Int) {
-        // Calculating dropdownHeight dynamically based on content could be more complex
-        let dropdownHeight: CGFloat = 120 // Example fixed height, adjust as needed
+        let dropdownHeight: CGFloat = 120
         let dropdownView = UIView(frame: CGRect(x: imageView.frame.origin.x, y: imageView.frame.maxY, width: imageView.frame.width, height: dropdownHeight))
         dropdownView.backgroundColor = .white
         dropdownView.layer.cornerRadius = 5
         dropdownView.clipsToBounds = true
-        dropdownView.tag = 9999 // Unique tag
+        dropdownView.tag = 9999 // Unique tag for the dropdown view
+        dropdownIndex = index
         
         let titleLabel = UILabel(frame: CGRect(x: 10, y: 5, width: dropdownView.frame.width, height: 20))
         titleLabel.text = "Title: \(imageModel.title)"
@@ -303,7 +292,7 @@ extension ViewController {
         scrollView.addSubview(dropdownView)
         adjustLayoutForDropdown(showing: true, atIndex: index, dropdownHeight: dropdownHeight)
     }
-    
+    //adjust view layout for dropdown whenever it is shown or hidden
     func adjustLayoutForDropdown(showing: Bool, atIndex index: Int, dropdownHeight: CGFloat) {
         UIView.animate(withDuration: 0.3) {
             var adjustmentHeight = dropdownHeight
@@ -325,9 +314,9 @@ extension ViewController {
     //save button tapped callback
     @objc func saveButtonTapped(_ sender: UIButton) {
         guard let selectedImageTuple = selectedImageCache else {
-               print("No image selected for saving")
-               return
-           }
+            print("No image selected for saving")
+            return
+        }
         let image = selectedImageTuple.image
         let imageView = selectedImageTuple.imageView
         let alert = UIAlertController(title: "Save Image", message: "Do you want to save this image?", preferredStyle: .alert)
