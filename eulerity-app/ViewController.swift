@@ -127,27 +127,6 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
         scrollView.contentSize = CGSize(width: view.frame.width, height: yOffset)
     }
     
-    //    @objc func imageTapped(_ sender: UITapGestureRecognizer) {
-    //        guard let imageView = sender.view as? UIImageView, let image = imageView.image else {
-    //            print("ImageView does not contain an image")
-    //            return
-    //        }
-    //
-    //        let alert = UIAlertController(title: "Save Image", message: "Do you want to save this image?", preferredStyle: .alert)
-    //        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
-    //            self?.saveImageLocally(image: image, completion: { (success) in
-    //                if success {
-    //                    print("Image saved successfully")
-    //                } else {
-    //                    print("Failed to save image")
-    //                }
-    //            })
-    //            self?.saveImageToServer(image: image, imageView: imageView)
-    //        }))
-    //        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-    //
-    //        present(alert, animated: true, completion: nil)
-    //    }
     @objc func imageTapped(_ sender: UITapGestureRecognizer) {
         guard let imageView = sender.view as? UIImageView else { return }
         
@@ -155,6 +134,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
         let image = imageView.image
         selectedImageCache = (image: image!, imageView: imageView)
         // Determine if a dropdown is already present for this image
+        
         if let existingDropdown = scrollView.viewWithTag(9999) {
             // Determine if we are closing the current dropdown or opening a new one
             let isClosingCurrentDropdown = existingDropdown.frame.origin.y == imageView.frame.maxY
