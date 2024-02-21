@@ -130,26 +130,37 @@ class ViewController: UIViewController, UISearchBarDelegate, UIImagePickerContro
         scrollView.contentSize = CGSize(width: view.frame.width, height: yOffset)
     }
     
+//    @objc func imageTapped(_ sender: UITapGestureRecognizer) {
+//        guard let imageView = sender.view as? UIImageView, let image = imageView.image else {
+//            print("ImageView does not contain an image")
+//            return
+//        }
+//        
+//        let alert = UIAlertController(title: "Save Image", message: "Do you want to save this image?", preferredStyle: .alert)
+//        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
+//            self?.saveImageLocally(image: image, completion: { (success) in
+//                if success {
+//                    print("Image saved successfully")
+//                } else {
+//                    print("Failed to save image")
+//                }
+//            })
+//            self?.saveImageToServer(image: image, imageView: imageView)
+//        }))
+//        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+//        
+//        present(alert, animated: true, completion: nil)
+//    }
     @objc func imageTapped(_ sender: UITapGestureRecognizer) {
-        guard let imageView = sender.view as? UIImageView, let image = imageView.image else {
-            print("ImageView does not contain an image")
+        guard let imageView = sender.view as? UIImageView,
+              let image = imageView.image,
+              let imageIndex = imageView.tag < filteredImages.count ? imageView.tag : nil else {
+            print("ImageView does not contain an image or index out of bounds")
             return
         }
         
-        let alert = UIAlertController(title: "Save Image", message: "Do you want to save this image?", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
-            self?.saveImageLocally(image: image, completion: { (success) in
-                if success {
-                    print("Image saved successfully")
-                } else {
-                    print("Failed to save image")
-                }
-            })
-            self?.saveImageToServer(image: image, imageView: imageView)
-        }))
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        
-        present(alert, animated: true, completion: nil)
+        let imageModel = filteredImages[imageIndex]
+        showDetailOverlay(for: imageModel, withImage: image)
     }
     
     func loadImage(from url: URL, into imageView: UIImageView) {
@@ -269,4 +280,88 @@ extension ViewController {
     }
 
     
+}
+extension ViewController {
+    //show detail overlay
+    func showDetailOverlay(for imageModel: ImageModel, withImage image: UIImage) {
+        let detailView = UIView(frame: view.bounds)
+        detailView.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        
+        let blurEffect = UIBlurEffect(style: .dark)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.frame = detailView.bounds
+        detailView.addSubview(blurView)
+        
+        // Image View
+        let imageView = UIImageView(image: image)
+        imageView.contentMode = .scaleAspectFit
+        imageView.frame = CGRect(x: 20, y: 100, width: detailView.frame.width - 40, height: 200)
+        blurView.contentView.addSubview(imageView)
+        
+        // Title Label
+        let titleLabel = UILabel(frame: CGRect(x: 20, y: 310, width: detailView.frame.width - 40, height: 20))
+        titleLabel.textColor = .white
+        titleLabel.textAlignment = .center
+        titleLabel.text = "Title: \(imageModel.title)"
+        blurView.contentView.addSubview(titleLabel)
+        
+        // Description Label
+        let descriptionLabel = UILabel(frame: CGRect(x: 20, y: 340, width: detailView.frame.width - 40, height: 20))
+        descriptionLabel.textColor = .white
+        descriptionLabel.textAlignment = .center
+        descriptionLabel.text = "Description: \(imageModel.description)"
+        blurView.contentView.addSubview(descriptionLabel)
+        
+        // Creation Date Label
+        let dateLabel = UILabel(frame: CGRect(x: 20, y: 370, width: detailView.frame.width - 40, height: 20))
+        dateLabel.textColor = .white
+        dateLabel.textAlignment = .center
+        dateLabel.text = "Created: \(imageModel.created)"
+        blurView.contentView.addSubview(dateLabel)
+        
+        // Save Button
+        let saveButton = UIButton(type: .system)
+        saveButton.frame = CGRect(x: 100, y: detailView.frame.height - 100, width: detailView.frame.width - 200, height: 44)
+        saveButton.setTitle("Save", for: .normal)
+        saveButton.addTarget(self, action: #selector(saveButtonTapped(_:)), for: .touchUpInside)
+        saveButton.backgroundColor = .systemBlue
+        saveButton.setTitleColor(.white, for: .normal)
+        saveButton.layer.cornerRadius = 22
+        blurView.contentView.addSubview(saveButton)
+        
+        // Close Button
+        let closeButton = UIButton(type: .system)
+        closeButton.frame = CGRect(x: detailView.frame.width - 60, y: 30, width: 30, height: 30)
+        closeButton.setTitle("X", for: .normal)
+        closeButton.addTarget(self, action: #selector(closeButtonTapped(_:)), for: .touchUpInside)
+        closeButton.backgroundColor = .clear
+        closeButton.setTitleColor(.white, for: .normal)
+        blurView.contentView.addSubview(closeButton)
+        
+        // Tag the detailView for later removal
+        detailView.tag = 999
+        view.addSubview(detailView)
+    }
+    //save button tapped callback
+    @objc func saveButtonTapped(_ sender: UIButton) {
+        guard let detailView = view.viewWithTag(999),
+              let imageView = detailView.subviews.compactMap({ $0 as? UIImageView }).first,
+              let image = imageView.image else {
+            return
+        }
+        
+        saveImageLocally(image: image, completion: { (success) in
+            if success {
+                print("Image saved successfully")
+            } else {
+                print("Failed to save image")
+            }
+        })
+        detailView.removeFromSuperview()
+    }
+
+    @objc func closeButtonTapped(_ sender: UIButton) {
+        view.viewWithTag(999)?.removeFromSuperview()
+    }
+
 }
