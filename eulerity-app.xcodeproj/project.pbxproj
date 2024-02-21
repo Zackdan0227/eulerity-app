@@ -452,7 +452,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6G49VCDMBJ;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "eularity-app/Info.plist";
+				INFOPLIST_FILE = "eulerity-app/Info.plist";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs access to your photo library to save edited images.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -481,7 +481,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6G49VCDMBJ;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "eularity-app/Info.plist";
+				INFOPLIST_FILE = "eulerity-app/Info.plist";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs access to your photo library to save edited images.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
